@@ -8,9 +8,12 @@ class User < ApplicationRecord
     
     has_many :microposts
     has_many :relationships
+    has_many :likes
     has_many :followings, through: :relationships, source: :follow
     has_many :reverses_of_relationship, class_name: 'Relationship', foreign_key: 'follow_id'
     has_many :followers, through: :reverses_of_relationship, source: :user
+    has_many :liking, through: :likes, source: :micropost
+    #has_many :likes, through: :likes, source: :like
     
   def index
     @users = User.all.page(params[:page])
@@ -33,7 +36,29 @@ class User < ApplicationRecord
   
   def feed_microposts
     Micropost.where(user_id: self.following_ids + [self.id])
-  end  
+  end 
+  
+  #def feed_likes
+  #  Like.where(user_id: self.liking_ids + [self.id])
+  #end
+  
+  def like(micropost)
+      self.likes.find_or_create_by(micropost_id: micropost.id)
+  end
+
+  def unlike(micropost)
+    like = self.likes.find_by(micropost_id: micropost.id)
+    like.destroy if like
+  end
+
+
+  def liking?(micropost)
+    self.liking.include?(micropost)
+  end
+
+  #def likes?(micropost)
+  #  self.liking.include?(micropost)
+  #end
   
   
 end
